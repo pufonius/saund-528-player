@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sound528 — Audio Player MVP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .player-card {
+            background-color: #1e293b;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 300px;
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #38bdf8; }
+        p { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.5rem; }
+        .btn {
+            background-color: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+        .btn:hover { background-color: #0284c7; color: #fff; }
+        .controls { text-align: left; margin-top: 1rem; }
+        label { font-size: 0.85rem; color: #cbd5e1; display: block; margin-bottom: 0.3rem; }
+        input[type="range"] { width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="player-card">
+        <h1>Sound 528 Hz</h1>
+        <p>Гармония и фокус</p>
+        
+        <button id="playBtn" class="btn">Включить 528 Гц</button>
+
+        <div class="controls">
+            <label for="volume">Громкость:</label>
+            <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+        </div>
+    </div>
+
+    <script>
+        let audioCtx;
+        let oscillator;
+        let gainNode;
+        let isPlaying = false;
+
+        const playBtn = document.getElementById('playBtn');
+        const volumeControl = document.getElementById('volume');
+
+        playBtn.addEventListener('click', () => {
+            if (!isPlaying) {
+                // Создаем аудио-контекст при клике
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Создаем генератор частоты (осциллятор)
+                oscillator = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine'; // Чистая синусоида
+                oscillator.frequency.setValueAtTime(528, audioCtx.currentTime); // Устанавливаем 528 Гц
+
+                gainNode.gain.setValueAtTime(volumeControl.value, audioCtx.currentTime);
+
+                // Соединяем: Генератор -> Громкость -> Динамики
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                playBtn.textContent = 'Остановить';
+                playBtn.style.backgroundColor = '#ef4444';
+                playBtn.style.color = '#fff';
+                isPlaying = true;
+            } else {
+                oscillator.stop();
+                audioCtx.close();
+                playBtn.textContent = 'Включить 528 Гц';
+                playBtn.style.backgroundColor = '#38bdf8';
+                playBtn.style.color = '#0f172a';
+                isPlaying = false;
+            }
+        });
+
+        volumeControl.addEventListener('input', (e) => {
+            if (gainNode && isPlaying) {
+                gainNode.gain.setValueAtTime(e.target.value, audioCtx.currentTime);
+            }
+        });
+    </script>
+</body>
+</html>
